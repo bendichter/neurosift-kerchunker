@@ -1,0 +1,24 @@
+name: keepalive
+# GitHub disables scheduled workflows in a public repository after 60 days
+# without activity. Re-enabling them through the API resets that clock, so
+# this runs twice a month and re-enables the scheduled workflows, itself
+# included.
+on:
+  schedule:
+    - cron: "17 5 1,15 * *" # 5:17 AM UTC on the 1st and 15th
+  workflow_dispatch:
+permissions:
+  actions: write
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-enable scheduled workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          for wf in dandi-lindi.yml create-nwb-usage-scripts.yml keepalive.yml; do
+            gh api -X PUT "repos/$REPO/actions/workflows/$wf/enable"
+            echo "enabled $wf"
+          done
